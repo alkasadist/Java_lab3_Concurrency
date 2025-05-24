@@ -100,6 +100,11 @@ public class PhoneCallMediator {
     }
 
     private boolean dropCall(PhoneProxy caller) {
+        if (caller.getConnectedPhoneNumber() == null) {
+            System.out.println("DROP ERROR: " + caller.getNumber() + " is not in a call.");
+            return false;
+        }
+
         PhoneProxy callee = phones.get(caller.getConnectedPhoneNumber());
 
         caller.setConnectedPhoneNumber(null);
