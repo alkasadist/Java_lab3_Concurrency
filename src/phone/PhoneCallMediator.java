@@ -2,25 +2,65 @@ package phone;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.LinkedBlockingQueue;
 
 public class PhoneCallMediator {
     private static PhoneCallMediator instance;
-    private final Map<String, PhoneProxy> phones = new HashMap<>();
+    // TODO: concurrent?
+    private final Map<String, PhoneProxy> phones = new ConcurrentHashMap<>();
+    private final BlockingQueue<Request> requestQueue = new LinkedBlockingQueue<>();
 
-    private PhoneCallMediator() {}
+    private PhoneCallMediator() {
+        for (int threads = 0; threads < 4; threads++) {
+            new Thread(this::processRequests).start();
+        }
+    }
 
-    public static PhoneCallMediator getInstance() {
+    public static synchronized PhoneCallMediator getInstance() {
         if (instance == null) {
             instance = new PhoneCallMediator();
         }
         return instance;
     }
 
+    public void submitRequest(Request req) {
+        try {
+            requestQueue.put(req);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+    }
+
+    private void processRequests() {
+        while (true) {
+            try {
+                Request req = requestQueue.take();
+                handle(req);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }
+    }
+
+    private void handle(Request req) {
+        try {
+            switch (req.getType()) {
+                case CALL -> makeCall(req.getFromPhone().getNumber(), req.getToNumber());
+                case ANSWER -> answerCall(req.getFromPhone());
+                case DROP -> dropCall(req.getFromPhone());
+            }
+        } finally {
+            req.markDone();
+        }
+    }
+
     public void registerPhone(PhoneProxy phone) {
         phones.put(phone.getNumber(), phone);
     }
 
-    public boolean makeCall(String fromNumber, String toNumber) {
+    private boolean makeCall(String fromNumber, String toNumber) {
         if (phones.get(toNumber) == null) {
             System.out.println("MEDIATOR ERROR: phone number " + toNumber + " not found.");
             return false;
@@ -46,7 +86,7 @@ public class PhoneCallMediator {
         return true;
     }
 
-    public boolean answerCall(PhoneProxy caller) {
+    private boolean answerCall(PhoneProxy caller) {
         PhoneProxy callee = phones.get(caller.getConnectedPhoneNumber());
 
         caller.setState(State.IN_CALL);
@@ -56,7 +96,7 @@ public class PhoneCallMediator {
         return true;
     }
 
-    public boolean dropCall(PhoneProxy caller) {
+    private boolean dropCall(PhoneProxy caller) {
         PhoneProxy callee = phones.get(caller.getConnectedPhoneNumber());
 
         caller.setConnectedPhoneNumber(null);
