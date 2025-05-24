@@ -1,19 +1,17 @@
 package phone;
 
-import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 public class PhoneCallMediator {
     private static PhoneCallMediator instance;
-    // TODO: concurrent?
     private final Map<String, PhoneProxy> phones = new ConcurrentHashMap<>();
     private final BlockingQueue<Request> requestQueue = new LinkedBlockingQueue<>();
 
     private PhoneCallMediator() {
-        for (int threads = 0; threads < 4; threads++) {
+        for (int threads = 1; threads <= 4; threads++) {
             new Thread(this::processRequests).start();
         }
     }
