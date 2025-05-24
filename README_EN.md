@@ -2,55 +2,33 @@
 - 🇷🇺 [Русский](README.md)
 - 🇺🇸 [English](README_EN.md)
 
-# 📚 Laboratory Work №1:
-This project includes an implementation of a system according to the selected variant, as well as 
-the integration of **GoF** design patterns.
+# 📚 Lab Work №3:
+This lab involves implementing a multithreaded server-side interaction system based on the system from
+[Lab Work №1](https://github.com/alkasadist/Java_lab1_Patterns)
 
-## Task:
-Develop an object-oriented model of the subject domain based on the given variants. Ensure the 
-possibility of extending the model with new object types and behavior. To maintain loose coupling 
-and system extensibility, apply **GoF** design patterns. You must use at least **two patterns from 
-each group**: **creational**, **structural**, and **behavioral**. Create a **console application** 
-in Java that implements the designed object-oriented model.
-
-## Variant 8:
-**Develop an object-oriented model of a telephone.**
-
-A phone has the following attributes:\
-```number```,\
-```balance```.
-
-The following operations are supported:\
-```make a call```,\
-```answer a call```,\
-```end a call```,\
-```recharge balance```.
-
-The phone can be in the following states:\
-```Waiting```,\
-```Calling```,\
-```In call```,\
-```Blocked``` (negative balance).
-
-**Implement an application demonstrating transitions between these states.**
+## 🧩 Task:
+You need to upgrade the system developed in Lab Work 1 using your knowledge of Concurrency.
+You must solve a classic multithreading programming problem:  
+**client-server interaction**:
+- Organize the operation of request generators, request queue, and request handlers.
+- Requests must be processed in a multithreaded mode. You should avoid data races and all the related issues.
 
 ## 📖 Explanation:
-### Selected **creational** patterns:
-**Multiton** (used in the ```Phone``` class) — to prevent creating multiple phones with the same number.
+### A new class `Request` has been added
+It contains all the necessary information for successful processing:
+1. Informational fields: `type`, `fromPhone`, `toNumber`.
+2. A flag `success` indicating successful request execution.
+3. A synchronization counter: `done`.
 
-**Singleton** (used in the ```PhoneCallMediator``` class) — to ensure all calls are processed through 
-a single controller.
+### The `PhoneCallMediator` class has been redesigned
+All client interactions with `PhoneCallMediator` now occur via the `submitRequest` method. 
+It places the request into a `requestQueue`, which is constantly read by server threads 
+(in the `processRequests` method). These threads take requests from the queue and process them.
 
-**Builder** (used in the ```PhoneProxy``` class) — to simplify object construction using method chaining.
+All call validations have been moved to `PhoneCallMediator`, since previously, some checks 
+executed locally in `PhoneProxy` could become outdated by the time the request was processed 
+on the server, due to non-atomicity.
 
-### Selected **structural** patterns:
-**Facade** — to simplify interaction between objects.
-
-**Proxy** (via the ```PhoneProxy``` class) — to separate error and exception handling logic.
-
-### Selected **behavioral** patterns:
-**Mediator** (via the ```PhoneCallMediator``` class) — to manage interactions between phones through 
-a central interface.
-
-**Chain of Responsibility** (used in the ```PhoneProxy``` class) — to delegate and simplify the error 
-handling process and make it more scalable.
+### A request generator has been added to `Main`
+With the `phoneCount` and `requestCount` variables, you can configure the number of active phones 
+and the number of requests sent to each (each request is handled in a separate thread).
