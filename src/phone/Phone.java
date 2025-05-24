@@ -1,14 +1,13 @@
 package phone;
 
 import java.util.Map;
-import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class Phone implements PhoneInterface {
     private static final Map<String, Phone> instances = new ConcurrentHashMap<>();
 
     private final String number;
-    private int balance = 0;
+    private volatile int balance = 0;
     private volatile State state = State.WAITING;
     private volatile String connectedPhoneNumber = null;
 

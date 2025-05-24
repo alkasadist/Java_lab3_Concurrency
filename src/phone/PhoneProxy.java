@@ -40,29 +40,29 @@ public class PhoneProxy implements PhoneInterface {
     }
 
     @Override
-    public String getNumber() { return realPhone.getNumber(); }
+    public synchronized String getNumber() { return realPhone.getNumber(); }
 
     @Override
-    public int getBalance() { return realPhone.getBalance(); }
+    public synchronized int getBalance() { return realPhone.getBalance(); }
 
     @Override
-    public State getState() { return realPhone.getState(); }
+    public synchronized State getState() { return realPhone.getState(); }
 
     @Override
-    public void setState(State state) {
+    public synchronized void setState(State state) {
         realPhone.setState(state);
     }
 
-    public String getConnectedPhoneNumber() {
+    public synchronized String getConnectedPhoneNumber() {
         return realPhone.getConnectedPhoneNumber();
     }
 
-    public void setConnectedPhoneNumber(String connectedPhoneNumber) {
+    public synchronized void setConnectedPhoneNumber(String connectedPhoneNumber) {
         realPhone.setConnectedPhoneNumber(connectedPhoneNumber);
     }
 
     @Override
-    public void replenishBalance(int amount) {
+    public synchronized void replenishBalance(int amount) {
         if (amount <= 0) {
             System.out.println("ERROR: wrong deposit amount.");
             return;
@@ -71,7 +71,7 @@ public class PhoneProxy implements PhoneInterface {
     }
 
     @Override
-    public void decreaseBalance(int amount) {
+    public synchronized void decreaseBalance(int amount) {
         if (amount <= 0) {
             System.out.println("ERROR: wrong decrease amount.");
             return;
@@ -80,27 +80,30 @@ public class PhoneProxy implements PhoneInterface {
     }
 
     public boolean call(String toNumber) {
-        if (canCall(toNumber)) {
-            Request request = new Request(Request.Type.CALL, this, toNumber);
-            return mediator.submitRequest(request);
-        }
-        return false;
+//        synchronized(this) {
+//            if (!canCall(toNumber)) return false;
+//        }
+
+        Request request = new Request(Request.Type.CALL, this, toNumber);
+        return mediator.submitRequest(request);
     }
 
     public boolean answer() {
-        if (canAnswer()) {
-            Request request = new Request(Request.Type.ANSWER, this, null);
-            return mediator.submitRequest(request);
-        }
-        return false;
+//        synchronized (this) {
+//            if (!canAnswer()) return false;
+//        }
+
+        Request request = new Request(Request.Type.ANSWER, this, null);
+        return mediator.submitRequest(request);
     }
 
     public boolean drop() {
-        if (canDrop()) {
-            Request request = new Request(Request.Type.DROP, this, null);
-            return mediator.submitRequest(request);
-        }
-        return false;
+//        synchronized (this) {
+//            if (!canDrop()) return false;
+//        }
+
+        Request request = new Request(Request.Type.DROP, this, null);
+        return mediator.submitRequest(request);
     }
 
     private boolean canCall(String toNumber) {
@@ -115,7 +118,7 @@ public class PhoneProxy implements PhoneInterface {
     }
 
     private boolean canAnswer() {
-        if (this.realPhone.getState() != State.RINGING) {
+        if (this.getState() != State.RINGING) {
             System.out.println("ERROR: nobody is calling you.");
             return false;
         }
@@ -123,7 +126,7 @@ public class PhoneProxy implements PhoneInterface {
     }
 
     private boolean canDrop() {
-        if (this.realPhone.getState() != State.IN_CALL) {
+        if (this.getState() != State.IN_CALL) {
             System.out.println("ERROR: you are not in the call.");
             return false;
         }

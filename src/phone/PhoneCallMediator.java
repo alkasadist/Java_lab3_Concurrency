@@ -63,7 +63,7 @@ public class PhoneCallMediator {
         phones.put(phone.getNumber(), phone);
     }
 
-    private boolean makeCall(String fromNumber, String toNumber) {
+    private synchronized boolean makeCall(String fromNumber, String toNumber) {
         if (phones.get(toNumber) == null) {
             System.out.println("MEDIATOR ERROR: phone number " + toNumber + " not found.");
             return false;
@@ -72,12 +72,32 @@ public class PhoneCallMediator {
         PhoneProxy fromPhone = phones.get(fromNumber);
         PhoneProxy toPhone = phones.get(toNumber);
 
+        if (fromPhone.getState() == State.IN_CALL ||
+                fromPhone.getState() == State.CALLING ||
+                fromPhone.getState() == State.RINGING) {
+            System.out.println("MEDIATOR ERROR: caller " + fromNumber + " is already in a call.");
+            return false;
+        }
+
+
         if (toPhone.getState() == State.IN_CALL ||
             toPhone.getState() == State.CALLING ||
             toPhone.getState() == State.RINGING) {
             System.out.println("MEDIATOR ERROR: phone number " + toNumber + " is busy, call again later.");
             return false;
         }
+
+        if (fromPhone.getBalance() < 50) {
+            fromPhone.setState(State.BLOCKED);
+            System.out.println("ERROR: insufficient balance.");
+            return false;
+        }
+
+        if (fromPhone.getNumber().equals(toNumber)) {
+            System.out.println("ERROR: you cannot call yourself.");
+            return false;
+        }
+
 
         fromPhone.decreaseBalance(50);
         fromPhone.setState(State.CALLING);
@@ -89,8 +109,18 @@ public class PhoneCallMediator {
         return true;
     }
 
-    private boolean answerCall(PhoneProxy caller) {
+    private synchronized boolean answerCall(PhoneProxy caller) {
+        if (caller.getConnectedPhoneNumber() == null) {
+            System.out.println("MEDIATOR ERROR: " + caller.getNumber() + " is not in a call.");
+            return false;
+        }
+
         PhoneProxy callee = phones.get(caller.getConnectedPhoneNumber());
+
+        if (callee.getState() != State.RINGING) {
+            System.out.println("ERROR: nobody is calling you.");
+            return false;
+        }
 
         caller.setState(State.IN_CALL);
         callee.setState(State.IN_CALL);
@@ -99,13 +129,18 @@ public class PhoneCallMediator {
         return true;
     }
 
-    private boolean dropCall(PhoneProxy caller) {
+    private synchronized boolean dropCall(PhoneProxy caller) {
         if (caller.getConnectedPhoneNumber() == null) {
-            System.out.println("DROP ERROR: " + caller.getNumber() + " is not in a call.");
+            System.out.println("MEDIATOR ERROR: " + caller.getNumber() + " is not in a call.");
             return false;
         }
 
         PhoneProxy callee = phones.get(caller.getConnectedPhoneNumber());
+
+        if (caller.getState() != State.IN_CALL) {
+            System.out.println("ERROR: you are not in the call.");
+            return false;
+        }
 
         caller.setConnectedPhoneNumber(null);
         caller.setState(State.WAITING);

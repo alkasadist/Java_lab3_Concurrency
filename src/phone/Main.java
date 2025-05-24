@@ -1,31 +1,64 @@
 package phone;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+
 public class Main {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws InterruptedException {
         PhoneCallMediator mediator = PhoneCallMediator.getInstance();
 
-        System.out.println("\nSuccessfulCall:");
+        int phoneCount = 5;
+        int requestCount = 30;
+        List<PhoneProxy> phones = new ArrayList<>();
 
-        PhoneProxy phone1 = new PhoneProxy.Builder("1000", mediator)
-                .setBalance(100)
-                .build();
-        PhoneProxy phone2 = new PhoneProxy("2000", mediator);
+        for (int i = 0; i < phoneCount; i++) {
+            PhoneProxy phone = new PhoneProxy.Builder(String.valueOf(1000 + i), mediator)
+                    .setBalance(200)
+                    .build();
+            phones.add(phone);
+        }
 
-        System.out.println(phone1);
-        System.out.println(phone2);
+        Random random = new Random();
 
-        phone2.replenishBalance(100);
+        for (int i = 0; i < requestCount; i++) {
+            new Thread(() -> {
+                PhoneProxy caller, callee;
+                do {
+                    caller = phones.get(random.nextInt(phoneCount));
+                    callee = phones.get(random.nextInt(phoneCount));
+                } while (caller == callee);
 
-        phone1.call("2000");
-        System.out.println(phone1);
-        System.out.println(phone2);
+//                if (caller.call(callee.getNumber())) {
+//                    System.out.println(caller);
+//                    if (callee.answer()) {
+//                        System.out.println(caller);
+//                        caller.drop();
+//                        System.out.println(caller);
+//                    }
+//                }
+                caller.call(callee.getNumber());
+                System.out.println(caller);
+                callee.answer();
+                System.out.println(caller);
+                caller.drop();
+                System.out.println(caller);
+            }).start();
 
-        phone2.answer();
-        System.out.println(phone1);
-        System.out.println(phone2);
+        }
 
-        phone2.drop();
-        System.out.println(phone1);
-        System.out.println(phone2);
+        sleep(100);
+
+        System.out.println("\n\n====== Final Phone States ======");
+        for (PhoneProxy phone : phones) {
+            System.out.println(phone);
+        }
+    }
+
+    private static void sleep(long millis) {
+        try {
+            Thread.sleep(millis);
+        } catch (InterruptedException ignored) {
+        }
     }
 }
