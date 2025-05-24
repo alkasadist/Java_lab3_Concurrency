@@ -23,11 +23,14 @@ public class PhoneCallMediator {
         return instance;
     }
 
-    public void submitRequest(Request req) {
+    public boolean submitRequest(Request req) {
         try {
             requestQueue.put(req);
+            req.awaitDone();
+            return req.isSuccess();
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
+            return false;
         }
     }
 
@@ -44,14 +47,16 @@ public class PhoneCallMediator {
 
     private void handle(Request req) {
         try {
-            switch (req.getType()) {
+            boolean result = switch (req.getType()) {
                 case CALL -> makeCall(req.getFromPhone().getNumber(), req.getToNumber());
                 case ANSWER -> answerCall(req.getFromPhone());
                 case DROP -> dropCall(req.getFromPhone());
-            }
+            };
+            req.setSuccess(result);
         } finally {
             req.markDone();
         }
+
     }
 
     public void registerPhone(PhoneProxy phone) {
