@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Random;
 
 public class Main {
-    public static void main(String[] args) throws InterruptedException {
+    public static void main(String[] args) {
         PhoneCallMediator mediator = PhoneCallMediator.getInstance();
 
         int phoneCount = 5;
@@ -40,18 +40,14 @@ public class Main {
 
         }
 
-        sleep(100);
+        try {
+            Thread.sleep(100);
+        } catch (InterruptedException ignored) {
+        }
 
         System.out.println("\n\n====== Final Phone States ======");
         for (PhoneProxy phone : phones) {
             System.out.println(phone);
-        }
-    }
-
-    private static void sleep(long millis) {
-        try {
-            Thread.sleep(millis);
-        } catch (InterruptedException ignored) {
         }
     }
 }
