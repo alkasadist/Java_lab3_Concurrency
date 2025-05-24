@@ -13,8 +13,8 @@ public class Main {
         List<PhoneProxy> phones = new ArrayList<>();
 
         for (int i = 0; i < phoneCount; i++) {
-            PhoneProxy phone = new PhoneProxy.Builder(String.valueOf(1000 + i), mediator)
-                    .setBalance(200)
+            PhoneProxy phone = new PhoneProxy.Builder(String.valueOf(100 + i), mediator)
+                    .setBalance(100)
                     .build();
             phones.add(phone);
         }
@@ -29,20 +29,13 @@ public class Main {
                     callee = phones.get(random.nextInt(phoneCount));
                 } while (caller == callee);
 
-//                if (caller.call(callee.getNumber())) {
-//                    System.out.println(caller);
-//                    if (callee.answer()) {
-//                        System.out.println(caller);
-//                        caller.drop();
-//                        System.out.println(caller);
-//                    }
-//                }
                 caller.call(callee.getNumber());
                 System.out.println(caller);
                 callee.answer();
                 System.out.println(caller);
                 caller.drop();
                 System.out.println(caller);
+
             }).start();
 
         }
