@@ -48,9 +48,9 @@ public class PhoneCallMediator {
     private void handle(Request req) {
         try {
             boolean result = switch (req.getType()) {
-                case CALL -> makeCall(req.getFromPhone().getNumber(), req.getToNumber());
-                case ANSWER -> answerCall(req.getFromPhone());
-                case DROP -> dropCall(req.getFromPhone());
+                case CALL -> call(req.getFromPhone().getNumber(), req.getToNumber());
+                case ANSWER -> answer(req.getFromPhone());
+                case DROP -> drop(req.getFromPhone());
             };
             req.setSuccess(result);
         } finally {
@@ -63,7 +63,7 @@ public class PhoneCallMediator {
         phones.put(phone.getNumber(), phone);
     }
 
-    private synchronized boolean makeCall(String fromNumber, String toNumber) {
+    private synchronized boolean call(String fromNumber, String toNumber) {
         if (phones.get(toNumber) == null) {
             System.out.println("MEDIATOR ERROR: phone number " + toNumber + " not found.");
             return false;
@@ -109,7 +109,7 @@ public class PhoneCallMediator {
         return true;
     }
 
-    private synchronized boolean answerCall(PhoneProxy caller) {
+    private synchronized boolean answer(PhoneProxy caller) {
         if (caller.getConnectedPhoneNumber() == null) {
             System.out.println("MEDIATOR ERROR: " + caller.getNumber() + " is not in a call.");
             return false;
@@ -129,7 +129,7 @@ public class PhoneCallMediator {
         return true;
     }
 
-    private synchronized boolean dropCall(PhoneProxy caller) {
+    private synchronized boolean drop(PhoneProxy caller) {
         if (caller.getConnectedPhoneNumber() == null) {
             System.out.println("MEDIATOR ERROR: " + caller.getNumber() + " is not in a call.");
             return false;

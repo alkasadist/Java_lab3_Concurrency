@@ -1,7 +1,5 @@
 package phone;
 
-import phone.checks.*;
-
 public class PhoneProxy implements PhoneInterface {
     private final Phone realPhone;
     private final PhoneCallMediator mediator;
@@ -80,57 +78,18 @@ public class PhoneProxy implements PhoneInterface {
     }
 
     public boolean call(String toNumber) {
-//        synchronized(this) {
-//            if (!canCall(toNumber)) return false;
-//        }
-
         Request request = new Request(Request.Type.CALL, this, toNumber);
         return mediator.submitRequest(request);
     }
 
     public boolean answer() {
-//        synchronized (this) {
-//            if (!canAnswer()) return false;
-//        }
-
         Request request = new Request(Request.Type.ANSWER, this, null);
         return mediator.submitRequest(request);
     }
 
     public boolean drop() {
-//        synchronized (this) {
-//            if (!canDrop()) return false;
-//        }
-
         Request request = new Request(Request.Type.DROP, this, null);
         return mediator.submitRequest(request);
-    }
-
-    private boolean canCall(String toNumber) {
-        CallCheck balanceCheck = new BalanceCheck();
-        CallCheck selfCallCheck = new SelfCallCheck();
-        CallCheck alreadyCallingCheck = new AlreadyCallingCheck();
-
-        balanceCheck.setNext(selfCallCheck);
-        selfCallCheck.setNext(alreadyCallingCheck);
-
-        return balanceCheck.check(this, toNumber);
-    }
-
-    private boolean canAnswer() {
-        if (this.getState() != State.RINGING) {
-            System.out.println("ERROR: nobody is calling you.");
-            return false;
-        }
-        return true;
-    }
-
-    private boolean canDrop() {
-        if (this.getState() != State.IN_CALL) {
-            System.out.println("ERROR: you are not in the call.");
-            return false;
-        }
-        return true;
     }
 
     @Override
