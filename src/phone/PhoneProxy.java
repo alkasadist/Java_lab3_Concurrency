@@ -1,7 +1,5 @@
 package phone;
 
-import phone.checks.*;
-
 public class PhoneProxy implements PhoneInterface {
     private final Phone realPhone;
     private final PhoneCallMediator mediator;
@@ -40,29 +38,29 @@ public class PhoneProxy implements PhoneInterface {
     }
 
     @Override
-    public String getNumber() { return realPhone.getNumber(); }
+    public synchronized String getNumber() { return realPhone.getNumber(); }
 
     @Override
-    public int getBalance() { return realPhone.getBalance(); }
+    public synchronized int getBalance() { return realPhone.getBalance(); }
 
     @Override
-    public State getState() { return realPhone.getState(); }
+    public synchronized State getState() { return realPhone.getState(); }
 
     @Override
-    public void setState(State state) {
+    public synchronized void setState(State state) {
         realPhone.setState(state);
     }
 
-    public String getConnectedPhoneNumber() {
+    public synchronized String getConnectedPhoneNumber() {
         return realPhone.getConnectedPhoneNumber();
     }
 
-    public void setConnectedPhoneNumber(String connectedPhoneNumber) {
+    public synchronized void setConnectedPhoneNumber(String connectedPhoneNumber) {
         realPhone.setConnectedPhoneNumber(connectedPhoneNumber);
     }
 
     @Override
-    public void replenishBalance(int amount) {
+    public synchronized void replenishBalance(int amount) {
         if (amount <= 0) {
             System.out.println("ERROR: wrong deposit amount.");
             return;
@@ -71,7 +69,7 @@ public class PhoneProxy implements PhoneInterface {
     }
 
     @Override
-    public void decreaseBalance(int amount) {
+    public synchronized void decreaseBalance(int amount) {
         if (amount <= 0) {
             System.out.println("ERROR: wrong decrease amount.");
             return;
@@ -80,51 +78,18 @@ public class PhoneProxy implements PhoneInterface {
     }
 
     public boolean call(String toNumber) {
-        if (canCall(toNumber)) {
-            return mediator.makeCall(this.getNumber(), toNumber);
-        }
-        return false;
+        Request request = new Request(Request.Type.CALL, this, toNumber);
+        return mediator.submitRequest(request);
     }
 
     public boolean answer() {
-        if (canAnswer()) {
-            return mediator.answerCall(this);
-        }
-        return false;
+        Request request = new Request(Request.Type.ANSWER, this, null);
+        return mediator.submitRequest(request);
     }
 
     public boolean drop() {
-        if (canDrop()) {
-            return mediator.dropCall(this);
-        }
-        return false;
-    }
-
-    private boolean canCall(String toNumber) {
-        CallCheck balanceCheck = new BalanceCheck();
-        CallCheck selfCallCheck = new SelfCallCheck();
-        CallCheck alreadyCallingCheck = new AlreadyCallingCheck();
-
-        balanceCheck.setNext(selfCallCheck);
-        selfCallCheck.setNext(alreadyCallingCheck);
-
-        return balanceCheck.check(this, toNumber);
-    }
-
-    private boolean canAnswer() {
-        if (this.realPhone.getState() != State.RINGING) {
-            System.out.println("ERROR: nobody is calling you.");
-            return false;
-        }
-        return true;
-    }
-
-    private boolean canDrop() {
-        if (this.realPhone.getState() != State.IN_CALL) {
-            System.out.println("ERROR: you are not in the call.");
-            return false;
-        }
-        return true;
+        Request request = new Request(Request.Type.DROP, this, null);
+        return mediator.submitRequest(request);
     }
 
     @Override

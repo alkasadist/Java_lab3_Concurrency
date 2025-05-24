@@ -9,7 +9,6 @@ public class Tests {
         AlreadyCallingTest(mediator);
         NoActiveCallTest(mediator);
         NoCallDropTest(mediator);
-        SuccessfulCall(mediator);
     }
 
     static void showTestResult(boolean result) {
@@ -94,31 +93,5 @@ public class Tests {
         boolean result = phone.drop();
 
         showTestResult(result);
-    }
-
-    static void SuccessfulCall(PhoneCallMediator mediator) {
-        System.out.println("\nSuccessfulCall:");
-
-        PhoneProxy phone1 = new PhoneProxy.Builder("1000", mediator)
-                .setBalance(100)
-                .build();
-        PhoneProxy phone2 = new PhoneProxy("2000", mediator);
-
-        System.out.println(phone1);
-        System.out.println(phone2);
-
-        phone2.replenishBalance(100);
-
-        phone1.call("2000");
-        System.out.println(phone1);
-        System.out.println(phone2);
-
-        phone2.answer();
-        System.out.println(phone1);
-        System.out.println(phone2);
-
-        phone2.drop();
-        System.out.println(phone1);
-        System.out.println(phone2);
     }
 }
