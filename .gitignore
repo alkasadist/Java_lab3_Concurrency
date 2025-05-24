@@ -1,0 +1,44 @@
+### Java ###
+*.class
+*.jar
+*.war
+*.ear
+
+### Build ###
+build/
+target/
+.gradle/
+
+### IntelliJ IDEA ###
+.idea/
+*.iml
+out/
+!**/src/main/**/out/
+!**/src/test/**/out/
+
+### Eclipse ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+bin/
+!**/src/main/**/bin/
+!**/src/test/**/bin/
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+### VSCode ###
+.vscode/
+
+### Mac OS ###
+.DS_Store
+
+ЛР3.docx
